@@ -4,7 +4,9 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
@@ -18,7 +20,7 @@ public class MsgProducer {
 	 private static final String BROKER_URL="failover://tcp://192.168.106.128:61616";
 	 private static final String SUBJECT = "test-queue";
 
-	public static void main(String[] args) throws JMSException{
+	public static void main(String[] args) throws JMSException, InterruptedException{
 		//创建连接工厂
 		ConnectionFactory connectionFactory=new ActiveMQConnectionFactory(BROKER_URL);
 		//获得连接
@@ -31,8 +33,21 @@ public class MsgProducer {
 		
         //创建队列
         Destination dest = session.createQueue(SUBJECT);
-        
-        //未完待续...
+        //创建消息生产者
+        MessageProducer producer = session.createProducer(dest);
+                
+        for (int i=0;i<100;i++) {
+            //初始化一个mq消息
+            TextMessage message = session.createTextMessage("这是第 " + i+" 条消息！");
+            //发送消息
+            producer.send(message);
+            System.out.println("send message:消息"+i);
+            //暂停3秒
+            Thread.sleep(3000);
+        }
+
+        //关闭mq连接
+        conn.close();
 	}
 	
 	
